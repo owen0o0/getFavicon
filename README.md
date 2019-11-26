@@ -12,6 +12,9 @@
 + 然后访问 http://you.url/get.php?url=https://www.iowen.cn
 <br/>
 
++ 如果出现获取不了的情况建议删除缓存再试一次
+<br/>
+
 ### 感谢
 感谢 <a href="https://github.com/jerrybendy/get_favicon" target="_blank">jerrybendy</a> ，此版本只是修复一些 bug 和编写了获取方法。
 <br/>
