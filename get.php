@@ -2,9 +2,9 @@
 /**
  * getFavicon
  * @author    一为
- * @date      2019-05-18
+ * @date      2019-11-27
  * @link      https://www.iowen.cn
- * @version   1.0.0
+ * @version   1.1.0
  */
 
 if( !isset($_GET['url'])){
@@ -46,11 +46,13 @@ if($expire == 0){
 }
 else{
     $defaultMD5 = md5(file_get_contents($defaultIco));
-    if (Cache::get($formatUrl,$defaultMD5,$expire) !== NULL) {
+    
+    $data = Cache::get($formatUrl,$defaultMD5,$expire);
+    if ($data !== NULL) {
         foreach ($favicon->getHeader() as $header) {
             @header($header);
         }
-        echo Cache::get($formatUrl,$defaultMD5,$expire);
+        echo $data;
         exit;
     }
 
@@ -96,17 +98,21 @@ class Cache
 
         $a = $dir . '/' . $f . '.txt';
 
-		$data = file_get_contents($a);
-    	if( md5($data) == $default ){
-        	$expire = 43200; //如果返回默认图标，过期时间为12小时。
-    	}
-        if ( !is_file($a) || (time() - filemtime($a)) > $expire ) {
+        if(is_file($a)){
+            $data = file_get_contents($a);
+            if( md5($data) == $default ){
+                $expire = 43200; //如果返回默认图标，过期时间为12小时。
+            }
+            if( (time() - filemtime($a)) > $expire ){
+                return null;
+            }
+            else{
+                return $data;
+            }
+		}
+        else{
             return null;
         }
-        else { 
-            return $data;
-        }
-
     }
 
     /**
@@ -133,7 +139,5 @@ class Cache
             fwrite($imgdata, $value);
             fclose($imgdata); 
         }
-        
     }
-
 }
