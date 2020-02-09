@@ -7,12 +7,28 @@
 <br/>
 
 ### 安装使用
-+ 上传到网站根目录
++ 上传到网站根目录或者 favicon 文件夹中
 + cache 文件夹给 755 权限
-+ 然后访问 http://you.url/get.php?url=https://www.iowen.cn
++ 然后访问 http://you.url/favicon/get.php?url=https://www.iowen.cn
 <br/>
 
 + 如果出现获取不了的情况建议删除缓存再试一次
++ 注：文中 faviconw 为 api 文件夹，酌情设置
+<br/>
+
+### 伪静态
+方便cdn缓存
+```
+# Nginx规则
+rewrite ^/favicon/(.*)\.png$ /favicon/get.php?url=$1;
+
+# Apache 规则
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule ^favicon/(.*)\.png$ favicon/get.php?url=$1 [L]
+</IfModule>
+```
+调用方法 http://you.url/favicon/www.iowen.cn.png
 <br/>
 
 ### 感谢
