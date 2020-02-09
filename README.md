@@ -29,6 +29,7 @@ RewriteRule ^favicon/(.*)\.png$ favicon/get.php?url=$1 [L]
 </IfModule>
 ```
 调用方法 http://you.url/favicon/www.iowen.cn.png
++ 注：目标网址不能有 http(s)://
 <br/>
 
 ### 感谢
