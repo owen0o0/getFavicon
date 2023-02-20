@@ -251,10 +251,10 @@ class Favicon
              * FIX #1
              * 对取到的HTML内容进行删除换行符的处理,避免link信息折行导致的正则匹配失败
              */
-            $html = str_replace(array("\n", "\r"), '', $html);
+            $html = str_replace(array("\n", "\r"), '', $html['data']);
 
             //匹配完整的LINK标签，再从LINK标签中获取HREF的值
-            if (@preg_match('/((<link[^>]+rel=.(icon|shortcut icon|alternate icon|apple-touch-icon)[^>]+>))/i', $html['data'], $match_tag)) {
+            if (@preg_match('/((<link[^>]+rel=.(icon|shortcut icon|alternate icon|apple-touch-icon)[^>]+>))/i', $html, $match_tag)) {
 
                 if (isset($match_tag[1]) && $match_tag[1] && @preg_match('/href=(\'|\")(.*?)\1/i', $match_tag[1], $match_url)) {
 
@@ -309,18 +309,16 @@ class Favicon
         
         /**
          * 从其他api最后获取图像 -----------------------------------------------------
-         * 
+         * t3.gstatic.com 国内可用 t3.gstatic.cn
          */
-        //if ($this->data == NULL) {
-        //    $thrurl='http://www.google.cn/s2/favicons?domain=';
-        //    $icon = file_get_contents($thrurl.$this->full_host);  
-        //    //$this->_log_message("--图标 md5 值为".md5($icon));
-        //    if($icon && md5($icon)!="3ca64f83fdcf25135d87e08af65e68c9"){  //判断是否为对方 api 返回的默认图标，可通过上行 log 查看
-        //        $this->_log_message("--从 {$thrurl} 获取到图标");
-        //        $this->data = $icon; 
-        //    } 
-        //}
-        
+        if ($this->data == NULL) {
+            $thrurl='http://t3.gstatic.cn/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=128&url='.$this->full_host;
+            $icon = file_get_contents($thrurl);
+            if($icon){   
+                $this->_log_message("--https://t3.gstatic.com/{$this->full_host}/favicon.ico");
+                $this->data = $icon; 
+            }
+        }
 
         if ($this->data == NULL) {
             //各个方法都试过了，还是获取不到。。。
@@ -469,7 +467,7 @@ class Favicon
      * @param string $url
      * @param bool   $isimg 是否为图片
      * @param int    $timeout 超时值，默认为10秒
-     * @return string 成功返回获取到的内容，同时设置 $this->content，失败返回FALSE
+     * @return string|array 成功返回获取到的内容，同时设置 $this->content，失败返回FALSE
      */
     private function getFile($url, $isimg = false, $timeout = 2)
     {
@@ -483,6 +481,13 @@ class Favicon
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        /** @var mixed 只获取500kb的数据，如果目标图片超过500kb，则丢弃 */
+        $request_headers = array('Range: bytes=0-512000'); //500 KB
+        curl_setopt( $ch, CURLOPT_FORBID_REUSE, true );
+        $request_headers[] = 'Connection: close';
+        curl_setopt( $ch, CURLOPT_HTTPHEADER, $request_headers );
+
         curl_setopt($ch, CURLOPT_FAILONERROR, 1);
         //执行重定向获取
         $ret = $this->curlExecFollow($ch, 2);
@@ -501,7 +506,7 @@ class Favicon
                 $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
                 $arr = array(
-                    'status'   => ($status >= 200 && $status <= 299) ? TRUE : FALSE,
+                    'status'   => ($status >= 200 && $status <= 299) ? 'OK' : 'FAIL',
                     'data'     => $ret,
                     'real_url' => curl_getinfo($ch, CURLINFO_EFFECTIVE_URL)
                 );
